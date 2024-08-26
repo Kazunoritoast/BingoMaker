@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Maker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        .bingo-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 100px);
+            grid-gap: 5px;
+            margin: 20px auto;
+            max-width: 520px;
+        }
+        .bingo-cell {
+            width: 100px;
+            height: 100px;
+            border: 2px solid #333;
+            background-color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            padding: 5px;
+            box-sizing: border-box;
+            border-radius: 8px;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        .bingo-cell input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            box-sizing: border-box;
+            text-align: center;
+            font-size: 14px;
+            border-radius: 8px;
+        }
+        .bingo-cell:hover {
+            background-color: #f0f0f0;
+            border-color: #555;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            background-color: #007BFF;
+            color: #fff;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .generated-card {
+            margin: 20px auto;
+            max-width: 520px;
+        }
+        .generated-card .bingo-grid {
+            border: 2px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .generated-card .bingo-cell {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .generated-card button {
+            background-color: #28a745;
+        }
+        .generated-card button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bingo Maker</h1>
+    <p>Enter words into the 5x5 grid below:</p>
+
+    <div class="bingo-grid" id="bingoGrid">
+        <!-- 25 input cells will be inserted here -->
+    </div>
+
+    <button onclick="generateRandomCard()">Generate Random Bingo Card</button>
+
+    <div id="generatedCard" class="generated-card" style="display:none;">
+        <h2>Your Random Bingo Card</h2>
+        <div id="bingoCardGrid" class="bingo-grid">
+            <!-- Randomized Bingo card will be inserted here -->
+        </div>
+        <button onclick="saveCard()">Save Card</button>
+    </div>
+
+    <script>
+        // Initialize the Bingo grid
+        function initGrid() {
+            const gridContainer = document.getElementById('bingoGrid');
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'bingo-cell';
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = 'Enter word';
+                cell.appendChild(input);
+                gridContainer.appendChild(cell);
+            }
+        }
+
+        // Generate a random Bingo card from input values
+        function generateRandomCard() {
+            const inputs = document.querySelectorAll('.bingo-cell input');
+            const words = [];
+            inputs.forEach(input => {
+                if (input.value.trim() !== '') {
+                    words.push(input.value.trim());
+                }
+            });
+
+            if (words.length < 25) {
+                alert('Please fill in all 25 cells.');
+                return;
+            }
+
+            // Shuffle words
+            for (let i = words.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [words[i], words[j]] = [words[j], words[i]];
+            }
+
+            // Create a new grid with the randomized words
+            const bingoCardGrid = document.getElementById('bingoCardGrid');
+            bingoCardGrid.innerHTML = '';
+            words.forEach(word => {
+                const cell = document.createElement('div');
+                cell.className = 'bingo-cell';
+                cell.textContent = word;
+                bingoCardGrid.appendChild(cell);
+            });
+
+            document.getElementById('generatedCard').style.display = 'block';
+        }
+
+        // Save Bingo card as an image
+        function saveCard() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const grid = document.getElementById('bingoCardGrid');
+            const cells = grid.querySelectorAll('.bingo-cell');
+
+            canvas.width = 500;
+            canvas.height = 500;
+
+            cells.forEach((cell, index) => {
+                const x = (index % 5) * 100;
+                const y = Math.floor(index / 5) * 100;
+
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(x, y, 100, 100);
+                ctx.strokeStyle = '#333';
+                ctx.strokeRect(x, y, 100, 100);
+
+                ctx.fillStyle = '#333';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(cell.textContent, x + 50, y + 50);
+            });
+
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = 'bingo-card.png';
+            link.click();
+        }
+
+        // Initialize the Bingo grid on page load
+        initGrid();
+    </script>
+</body>
+</html>
